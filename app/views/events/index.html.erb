@@ -1,6 +1,125 @@
 <h1>Events calendar</h1>
 
-<%= link_to 'Create event' %>
+<%= link_to 'Create event', events_new_path %>
 
 <%= image_tag 'events_calendar', width: '100%' %>
+
+<div id="app">
+  <table width="50px">
+    <thead>
+    <tr>
+      <th v-for="(w, idx) in week" :key="idx">{{ w.day }} <br> <span>{{ w.date }}</span></th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+      <td v-for="(w, idx) in week" :key="idx" :id="'td_' + idx">
+      </td>
+    </tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+const app = new Vue({
+    el: '#app',
+    data: {
+        weekday: [
+            'Monday',
+            'Tuesday',
+            'Wednesday',
+            'Thursday',
+            'Friday',
+            'Saturday',
+            'Sunday'
+        ],
+        week: [],
+        event: {}
+    },
+    created () {
+        this.setWeek()
+        this.getEvent()
+        window.addEventListener('resize', this.handleResize);
+    },
+    watch: {
+        event () {
+            this.setEvent()
+        }
+    },
+    methods: {
+        handleResize () {
+            this.setEvent()
+        },
+        setWeek () {
+            const currentDay = new Date();
+            const theYear = currentDay.getFullYear();
+            const theMonth = currentDay.getMonth();
+            const theDate  = currentDay.getDate();
+            const theDayOfWeek = currentDay.getDay();
+
+            const thisWeek = []
+
+            for(let i=0; i<7; i++) {
+                let resultDay = new Date(theYear, theMonth, theDate + (i - theDayOfWeek));
+                let yyyy = resultDay.getFullYear();
+                let mm = Number(resultDay.getMonth()) + 1;
+                let dd = resultDay.getDate();
+
+                mm = String(mm).length === 1 ? '0' + mm : mm;
+                dd = String(dd).length === 1 ? '0' + dd : dd;
+
+                thisWeek[i] = {
+                    'date' : moment( yyyy + '-' + mm + '-' + dd ).format('Do MMM'),
+                    'day' : this.weekday[resultDay.getDay()]
+                }
+
+            }
+            this.week = thisWeek
+        },
+        setEvent () {
+            const td = 'td_' + new Date(this.event.startd).getDay()
+            const element = document.getElementById(td)
+
+            const block = document.createElement('div')
+            block.setAttribute('id', 'event')
+            const title = document.createTextNode(this.event.title)
+            const body = document.createTextNode(this.event.body)
+            const author = document.createTextNode(this.event.author)
+            const linebreak = document.createElement('br');
+            const linebreak2 = document.createElement('br')
+
+            block.appendChild(title)
+            block.appendChild(linebreak)
+            block.appendChild(body)
+            block.appendChild(linebreak2)
+            block.appendChild(author)
+
+            block.style.backgroundColor='orange'
+            block.style.position = 'absolute'
+            block.style.width = element.clientWidth * (new Date(this.event.endd).getDay() - new Date(this.event.startd).getDay() + 1) + 'px'
+            block.style.height = '7%'
+
+            element.appendChild(block)
+        },
+        getEvent () {
+            const opts = {
+                method: 'GET'
+            }
+
+            fetch('events/one', opts)
+                .then(res => res.json())
+                .then((body) => {
+                    const event = {
+                        'startd': body.startd,
+                        'endd': body.endd,
+                        'title': body.title,
+                        'body': body.body,
+                        'author': body.author
+                    }
+                    this.event = event
+            })
+        },
+    }
+})
+</script>
 

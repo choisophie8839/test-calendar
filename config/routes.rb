@@ -4,4 +4,7 @@ Rails.application.routes.draw do
   resources :events, only: %i(index)
 
   root to: redirect('/events')
+  get 'events/new'
+  get 'events/one'
+  post 'events/create'
 end

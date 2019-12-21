@@ -1,0 +1,87 @@
+<div id="create">
+  <h1>{{ hello }}</h1>
+  <form>
+    <input v-model="title" placeholder="title">
+    <input v-model="body" placeholder="body">
+    <input v-model="author" placeholder="author">
+    start :
+    <select v-model="startd">
+      <option v-for="(w, idx) in week" :key="idx" :value="w.date">{{w.date}}</option>
+    </select>
+    end :
+    <select v-model="endd">
+      <option v-for="(w, idx) in endSelection" :key="idx" :value="w.date">{{w.date}}</option>
+    </select>
+  </form>
+  <button @click="createEvent">Create</button>
+</div>
+
+<script>
+const create = new Vue({
+    el: '#create',
+    data: {
+        hello: 'Create Event',
+        title: '',
+        body: '',
+        author: '',
+        week: [],
+        startd: '',
+        endd : '',
+        endSelection : []
+    },
+    created() {
+      this.setWeek()
+    },
+    watch : {
+        startd (val) {
+            const idx = this.week.findIndex(value => {
+                return value.date === val
+            })
+            this.endSelection = this.week.slice(idx)
+        }
+    },
+    methods : {
+        createEvent () {
+            const model = {
+                'title': this.title,
+                'body': this.body,
+                'author': this.author,
+                'startd': this.startd,
+                'endd' : this.endd
+            }
+
+            const xhr = new XMLHttpRequest()
+            xhr.open('POST', 'create')
+            xhr.setRequestHeader('Content-Type', 'application/json')
+            xhr.send(JSON.stringify(model))
+            location.href = '/'
+        },
+        setWeek () {
+            const currentDay = new Date();
+            const theYear = currentDay.getFullYear();
+            const theMonth = currentDay.getMonth();
+            const theDate  = currentDay.getDate();
+            const theDayOfWeek = currentDay.getDay();
+
+            const thisWeek = []
+
+            for(let i=0; i<7; i++) {
+                let resultDay = new Date(theYear, theMonth, theDate + (i - theDayOfWeek));
+                let yyyy = resultDay.getFullYear();
+                let mm = Number(resultDay.getMonth()) + 1;
+                let dd = resultDay.getDate();
+
+                mm = String(mm).length === 1 ? '0' + mm : mm;
+                dd = String(dd).length === 1 ? '0' + dd : dd;
+
+                thisWeek[i] = {
+                    'date' : yyyy + '-' + mm + '-' + dd,
+                    'day' : resultDay.getDay()
+                }
+
+            }
+            this.week = thisWeek
+        },
+    }
+})
+</script>
